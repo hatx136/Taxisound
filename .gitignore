@@ -1,0 +1,53 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Android / Gradle / Capacitor builds
+.gradle/
+build/
+captures/
+.externalNativeBuild
+.cxx
+local.properties
+*.apk
+*.aab
+*.keystore
+
+# Android project specific build files
+android/app/build/
+android/.gradle/
+android/local.properties
+android/capacitor-cordova-android-plugins/build/
+android/capacitor-cordova-android-plugins/.gradle/
+android/capacitor-android/build/
+android/capacitor-android/.gradle/
+android/.idea/
+
+# Local tools / SDKs
+C:/Users/hatx/.bubblewrap/
+C:/Users/hatx/.gemini/
+.gemini/
+.agents/
+scratch/
+run_build.js
+run_init.js
+test_app.js
+test_track_ids.js
+to_base64.js
+trace_frequencies.js
+verify_updates.js
+write_walkthrough.js
+analyze_audio.js
+analyze_pitch.js
+extract_chime.js
+extract_chime_clean.js
+copy_chime.js
+copy_icon.js
+search_code.js
+
+# OS files
+.DS_Store
+Thumbs.db

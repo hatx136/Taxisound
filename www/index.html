@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
+    <link rel="manifest" href="manifest.json">
+    <title>Taxi Sounds - Ứng dụng thông báo xe dịch vụ</title>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- jsQR Library for Decoding uploaded QR Codes -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <link rel="stylesheet" href="style.css?v=6.0">
+    <style>
+        /* Extra caching protection for light theme button labels */
+        .light-theme .tactical-btn {
+            color: #0f172a !important;
+        }
+        .light-theme .btn-label {
+            color: #0f172a !important;
+        }
+        .light-theme .btn-desc {
+            color: #475569 !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-background" id="appBackground"></div>
+
+    <!-- Phone Wrapper for Desktop, Fullscreen on Mobile -->
+    <div class="phone-container">
+        <div class="phone-screen">
+            
+            <!-- Header Bar -->
+            <header class="app-header">
+                <button class="menu-toggle-btn" id="menuToggleBtn" aria-label="Mở menu">
+                    <i class="fa-solid fa-bars-staggered"></i>
+                </button>
+                <h1 class="app-title" data-i18n="app_title">Taxi Sounds</h1>
+                
+                <div class="header-right">
+                    <!-- Language Toggle Button in Header for quick access -->
+                    <button class="lang-toggle-btn" id="headerLangBtn">VI</button>
+                    
+                    <div class="logo-container" id="logoContainer">
+                        <div class="default-logo" id="defaultLogo">
+                            <i class="fa-solid fa-taxi"></i>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Slide-out Menu (Sidebar) -->
+            <div class="sidebar-overlay" id="sidebarOverlay"></div>
+            <nav class="sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <div class="user-avatar-container">
+                        <img id="sidebarAvatar" src="" alt="Ảnh tài xế" class="sidebar-avatar hidden">
+                        <div id="sidebarAvatarFallback" class="avatar-fallback">
+                            <i class="fa-solid fa-user-tie"></i>
+                        </div>
+                    </div>
+                    <h3 class="sidebar-username" id="sidebarUsername">Tài xế</h3>
+                    <p class="sidebar-subtitle" data-i18n="sidebar_subtitle">Taxi & Dịch vụ</p>
+                </div>
+                
+                <ul class="sidebar-menu">
+                    <li class="menu-item active" data-target="dashboard">
+                        <i class="fa-solid fa-gauge-high"></i> <span data-i18n="menu_dashboard">Bảng điều khiển</span>
+                    </li>
+                    <li class="menu-item" data-target="payment-view">
+                        <i class="fa-solid fa-qrcode"></i> <span data-i18n="menu_payment">Thanh toán cước</span>
+                    </li>
+                    <li class="menu-item" data-target="user-info">
+                        <i class="fa-solid fa-id-card"></i> <span data-i18n="menu_user">Người dùng</span>
+                    </li>
+                    <li class="menu-item" data-target="car-info">
+                        <i class="fa-solid fa-car"></i> <span data-i18n="menu_car">Loại xe</span>
+                    </li>
+                    <li class="menu-item" data-target="sound-settings">
+                        <i class="fa-solid fa-sliders"></i> <span data-i18n="menu_sound">Âm thanh phát</span>
+                    </li>
+                    <li class="menu-item" data-target="ai-agent-view">
+                        <i class="fa-solid fa-robot"></i> <span data-i18n="menu_ai_agent">Tác nhân AI</span>
+                    </li>
+                    <li class="menu-item" data-target="settings-view">
+                        <i class="fa-solid fa-gear"></i> <span data-i18n="menu_settings">Cài đặt</span>
+                    </li>
+                </ul>
+
+                <div class="sidebar-footer">
+                    <p>Taxi Sounds v1.0.0</p>
+                </div>
+            </nav>
+
+            <!-- Main Content Area -->
+            <main class="app-content" id="appContent">
+                
+                <!-- SECTION 1: DASHBOARD -->
+                <section class="content-section active" id="dashboard">
+                    <!-- Status / Visualizer -->
+                    <div class="visualizer-container">
+                        <div class="visualizer-ring" id="visualizerRing">
+                            <div class="visualizer-core">
+                                <i class="fa-solid fa-volume-high" id="statusIcon"></i>
+                                <span class="status-text" id="statusText" data-i18n="status_ready">Sẵn sàng</span>
+                            </div>
+                            <div class="pulse-wave wave1"></div>
+                            <div class="pulse-wave wave2"></div>
+                        </div>
+                        <div class="wave-bar-container" id="waveBarContainer">
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                        </div>
+                    </div>
+
+                    <!-- Tactical Play Buttons -->
+                    <div class="play-buttons-grid">
+                        <!-- Chào mừng (Đỏ) -->
+                        <button class="tactical-btn btn-welcome" id="btnPlayWelcome" data-sound="welcome">
+                            <div class="btn-icon-wrapper">
+                                <i class="fa-solid fa-door-open"></i>
+                            </div>
+                            <span class="btn-label" data-i18n="btn_welcome_lbl">CHÀO MỪNG</span>
+                            <span class="btn-desc" data-i18n="btn_welcome_desc">Khách lên xe</span>
+                            <div class="btn-ripple"></div>
+                        </button>
+
+                        <!-- Giới thiệu (Cam/Vàng) -->
+                        <button class="tactical-btn btn-intro" id="btnPlayIntro" data-sound="intro">
+                            <div class="btn-icon-wrapper">
+                                <i class="fa-solid fa-id-badge"></i>
+                            </div>
+                            <span class="btn-label" data-i18n="btn_intro_lbl">GIỚI THIỆU</span>
+                            <span class="btn-desc" data-i18n="btn_intro_desc">Tài xế & Loại xe</span>
+                            <div class="btn-ripple"></div>
+                        </button>
+
+                        <!-- Tạm biệt (Xanh Dương) -->
+                        <button class="tactical-btn btn-farewell" id="btnPlayFarewell" data-sound="farewell">
+                            <div class="btn-icon-wrapper">
+                                <i class="fa-solid fa-hand-holding-hand"></i>
+                            </div>
+                            <span class="btn-label" data-i18n="btn_farewell_lbl">TẠM BIỆT</span>
+                            <span class="btn-desc" data-i18n="btn_farewell_desc">Nhắc nhở hành lý</span>
+                            <div class="btn-ripple"></div>
+                        </button>
+                    </div>
+
+                    <!-- Quick Control Bar -->
+                    <div class="quick-controls">
+                        <button class="quick-control-btn btn-payment" id="btnQuickPayment">
+                            <i class="fa-solid fa-qrcode"></i> <span data-i18n="btn_payment_screen">Thanh toán cước</span>
+                        </button>
+                        <button class="quick-control-btn btn-spotify-trigger" id="btnLaunchSpotify">
+                            <i class="fa-brands fa-spotify text-green"></i> <span data-i18n="btn_spotify_suggest">Gợi ý nhạc Spotify</span>
+                        </button>
+                    </div>
+
+                    <!-- SPOTIFY MUSIC RECOMMENDATIONS CONTAINER (Moved to Dashboard) -->
+                    <div class="mt-20 hidden" id="aiSpotifyTabContent">
+                        <!-- Stage 1: Theme Selection Stage -->
+                        <div class="payment-card glass-card" id="spotifyThemeStage">
+                            <div class="form-group mb-15">
+                                <label class="text-purple font-semibold"><i class="fa-solid fa-circle-question"></i> <span data-i18n="label_spotify_theme_title">Chọn chủ đề âm nhạc muốn phát:</span></label>
+                            </div>
+                            
+                            <div class="theme-suggestions-grid" id="spotifyThemeSuggestionsGrid">
+                                <button class="theme-pill-btn" data-theme="lofi"><i class="fa-solid fa-mug-hot"></i> <span data-i18n="theme_lofi">Lofi Thư Giãn</span></button>
+                                <button class="theme-pill-btn" data-theme="acoustic"><i class="fa-solid fa-guitar"></i> <span data-i18n="theme_acoustic">Acoustic Chill</span></button>
+                                <button class="theme-pill-btn" data-theme="pop"><i class="fa-solid fa-music"></i> <span data-i18n="theme_pop">Pop Việt Thịnh Hành</span></button>
+                                <button class="theme-pill-btn" data-theme="classical"><i class="fa-solid fa-feather"></i> <span data-i18n="theme_classical">Không Lời/Cổ Điển</span></button>
+                                <button class="theme-pill-btn" data-theme="remix"><i class="fa-solid fa-bolt"></i> <span data-i18n="theme_remix">Nhạc Trẻ Remix</span></button>
+                                <button class="theme-pill-btn" data-theme="podcast"><i class="fa-solid fa-podcast"></i> <span data-i18n="theme_podcast">Podcast</span></button>
+                            </div>
+
+                            <div class="form-group border-top pt-15 mt-15">
+                                <label for="inputCustomMusicTheme"><i class="fa-solid fa-wand-magic-sparkles text-purple"></i> <span data-i18n="label_custom_theme">Hoặc nhập chủ đề khác tự do:</span></label>
+                                <div class="custom-theme-input-row">
+                                    <input type="text" id="inputCustomMusicTheme" placeholder="Ví dụ: Nhạc trữ tình nhẹ nhàng, nhạc rock sôi động...">
+                                    <button type="button" class="theme-submit-btn" id="btnSubmitCustomTheme"><i class="fa-solid fa-chevron-right"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stage 2: Artist Selection Stage (Hidden by default) -->
+                        <div class="payment-card glass-card hidden" id="spotifyArtistStage">
+                            <div class="detail-row border-bottom pb-10 mb-15 flex-row-between">
+                                <strong class="text-purple"><i class="fa-solid fa-user-tie"></i> <span data-i18n="label_spotify_artists">Chọn ca sĩ / Kênh:</span></strong>
+                                <button type="button" class="back-theme-btn" id="btnBackToThemes"><i class="fa-solid fa-arrow-rotate-left"></i> <span data-i18n="btn_back_themes">Chọn lại</span></button>
+                            </div>
+                            <p class="selected-theme-desc" id="spotifySelectedThemeText">Chủ đề: -</p>
+                            
+                            <div class="theme-suggestions-grid mb-15" id="spotifyArtistsList">
+                                <!-- Dynamically populated artists will go here -->
+                            </div>
+                            
+                            <div class="flex-row-between">
+                                <button type="button" class="back-theme-btn text-purple" id="btnSuggestOtherArtists"><i class="fa-solid fa-arrows-rotate"></i> <span data-i18n="btn_other_artists">Gợi ý ca sĩ khác</span></button>
+                            </div>
+                        </div>
+
+                        <!-- Stage 3: Song Recommendations List Stage (Hidden by default) -->
+                        <div class="payment-card glass-card hidden" id="spotifyRecommendStage">
+                            <div class="detail-row border-bottom pb-10 mb-15 flex-row-between">
+                                <strong class="text-purple"><i class="fa-solid fa-compact-disc fa-spin"></i> <span data-i18n="label_spotify_results">Đề xuất nhạc từ taxi_sound:</span></strong>
+                                <button type="button" class="back-theme-btn" id="btnBackToArtists"><i class="fa-solid fa-chevron-left"></i> <span data-i18n="btn_back_artists">Chọn ca sĩ khác</span></button>
+                            </div>
+                            
+                            <p class="selected-theme-desc" id="spotifySelectedArtistText">Ca sĩ: -</p>
+                            
+                            <div class="recommendations-list mb-15" id="spotifySongsList">
+                                <!-- Dynamically populated recommendations will go here -->
+                            </div>
+                            
+                            <div class="flex-row-between">
+                                <button type="button" class="back-theme-btn text-purple" id="btnSuggestOtherSongs"><i class="fa-solid fa-arrows-rotate"></i> <span data-i18n="btn_other_songs">Gợi ý bài hát khác</span></button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION 2: PAYMENT VIEW -->
+                <section class="content-section" id="payment-view">
+                    <h2 class="section-title"><i class="fa-solid fa-qrcode"></i> <span data-i18n="title_payment">Thanh toán cước xe</span></h2>
+                    
+                    <div class="payment-card">
+                        <!-- Big Amount Input Display -->
+                        <div class="fare-display">
+                            <input type="text" id="fareAmount" value="50,000" readonly>
+                            <span class="fare-currency" data-i18n="currency">đ</span>
+                        </div>
+                        
+                        <!-- QR Code Viewer -->
+                        <div class="qr-display-container">
+                            <img id="paymentQrImg" src="" alt="Mã QR thanh toán" class="qr-image hidden">
+                            <div id="paymentQrFallback" class="qr-fallback">
+                                <i class="fa-solid fa-qrcode"></i>
+                                <span data-i18n="no_qr_warning">Chưa thiết lập QR Code trong cài đặt</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Bank details card -->
+                        <div class="payment-details-box">
+                            <div class="detail-row">
+                                <span class="detail-label" data-i18n="label_bank">Ngân hàng</span>
+                                <span class="detail-val" id="payBankName">-</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label" data-i18n="label_account_no">Số tài khoản</span>
+                                <span class="detail-val" id="payAccountNo">-</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label" data-i18n="label_account_name">Chủ tài khoản</span>
+                                <span class="detail-val" id="payAccountName">-</span>
+                            </div>
+                        </div>
+                        <button type="button" class="guidance-voice-btn" id="btnPlayPaymentGuidance">
+                            <i class="fa-solid fa-volume-high"></i> <span data-i18n="btn_payment_guidance">Đọc hướng dẫn thanh toán</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Simulated Keypad for Driver to enter amount -->
+                    <div class="keypad-grid">
+                        <button class="keypad-btn">1</button>
+                        <button class="keypad-btn">2</button>
+                        <button class="keypad-btn">3</button>
+                        <button class="keypad-btn">4</button>
+                        <button class="keypad-btn">5</button>
+                        <button class="keypad-btn">6</button>
+                        <button class="keypad-btn">7</button>
+                        <button class="keypad-btn">8</button>
+                        <button class="keypad-btn">9</button>
+                        <button class="keypad-btn btn-clear" data-action="clear"><i class="fa-solid fa-delete-left"></i></button>
+                        <button class="keypad-btn">0</button>
+                        <button class="keypad-btn btn-doublezero">000</button>
+                    </div>
+                </section>
+
+                <!-- SECTION 3: USER INFO -->
+                <section class="content-section" id="user-info">
+                    <h2 class="section-title"><i class="fa-solid fa-id-card"></i> <span data-i18n="title_user_info">Thông tin người dùng</span></h2>
+                    <form id="userForm" class="config-form">
+                        
+                        <!-- Avatar Upload -->
+                        <div class="form-group text-center">
+                            <label class="image-uploader-label" data-i18n="label_avatar">Ảnh đại diện tài xế</label>
+                            <div class="avatar-preview-wrapper" onclick="document.getElementById('inputAvatar').click()">
+                                <img id="previewAvatar" src="" alt="Ảnh xem trước" class="preview-avatar hidden">
+                                <div id="previewAvatarFallback" class="preview-avatar-fallback">
+                                    <i class="fa-solid fa-camera"></i>
+                                    <span data-i18n="choose_photo">Chọn ảnh</span>
+                                </div>
+                            </div>
+                            <input type="file" id="inputAvatar" accept="image/*" class="hidden-input">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputDriverName"><i class="fa-solid fa-user"></i> <span data-i18n="label_driver_name">Họ tên tài xế</span></label>
+                            <input type="text" id="inputDriverName" placeholder="Nguyễn Văn Tài" required>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group col-6">
+                                <label for="inputDriverDOB"><i class="fa-solid fa-calendar-days"></i> <span data-i18n="label_driver_dob">Ngày sinh</span></label>
+                                <input type="date" id="inputDriverDOB" required>
+                            </div>
+                            <div class="form-group col-6">
+                                <label for="selectGender"><i class="fa-solid fa-venus-mars"></i> <span data-i18n="label_gender">Giới tính</span></label>
+                                <select id="selectGender" required>
+                                    <option value="male" data-i18n="opt_male">Nam</option>
+                                    <option value="female" data-i18n="opt_female">Nữ</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputLicenseInfo"><i class="fa-solid fa-address-card"></i> <span data-i18n="label_driver_license">Thông tin bằng lái</span></label>
+                            <input type="text" id="inputLicenseInfo" placeholder="123456789012 (Hạng D)" required>
+                        </div>
+
+                        <button type="submit" class="save-btn"><i class="fa-solid fa-floppy-disk"></i> <span data-i18n="btn_save_user">Lưu thông tin tài xế</span></button>
+                    </form>
+                </section>
+
+                <!-- SECTION 4: CAR INFO -->
+                <section class="content-section" id="car-info">
+                    <h2 class="section-title"><i class="fa-solid fa-car"></i> <span data-i18n="title_car_info">Thông tin loại xe</span></h2>
+                    <form id="carForm" class="config-form">
+                        
+                        <!-- Car Image Upload -->
+                        <div class="form-group text-center">
+                            <label class="image-uploader-label" data-i18n="label_car_img">Hình ảnh xe</label>
+                            <div class="car-preview-wrapper" onclick="document.getElementById('inputCarImage').click()">
+                                <img id="previewCar" src="" alt="Ảnh xe xem trước" class="preview-car hidden">
+                                <div id="previewCarFallback" class="preview-car-fallback">
+                                    <i class="fa-solid fa-camera"></i>
+                                    <span data-i18n="choose_car_photo">Chọn ảnh xe</span>
+                                </div>
+                            </div>
+                            <input type="file" id="inputCarImage" accept="image/*" class="hidden-input">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputCarPlate"><i class="fa-solid fa-rectangle-list"></i> <span data-i18n="label_car_plate">Biển số xe</span></label>
+                            <input type="text" id="inputCarPlate" placeholder="30A-999.99" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputCarModel"><i class="fa-solid fa-car-side"></i> <span data-i18n="label_car_model">Loại xe / Dòng xe</span></label>
+                            <input type="text" id="inputCarModel" placeholder="Toyota Vios" required>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group col-6">
+                                <label for="inputCarSeats"><i class="fa-solid fa-chair"></i> <span data-i18n="label_car_seats">Số chỗ ngồi</span></label>
+                                <input type="number" id="inputCarSeats" placeholder="5" min="2" max="60" required>
+                            </div>
+                            <div class="form-group col-6">
+                                <label for="inputCarColor"><i class="fa-solid fa-palette"></i> <span data-i18n="label_car_color">Màu xe</span></label>
+                                <input type="text" id="inputCarColor" placeholder="Trắng" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputCarRegistry"><i class="fa-solid fa-calendar-check"></i> <span data-i18n="label_car_registry">Hạn đăng kiểm</span></label>
+                            <input type="date" id="inputCarRegistry" required>
+                        </div>
+
+                        <button type="submit" class="save-btn"><i class="fa-solid fa-floppy-disk"></i> <span data-i18n="btn_save_car">Lưu thông tin xe</span></button>
+                    </form>
+                </section>
+
+                <!-- SECTION 5: SOUND SETTINGS -->
+                <section class="content-section" id="sound-settings">
+                    <h2 class="section-title"><i class="fa-solid fa-sliders"></i> <span data-i18n="title_sound_settings">Cấu hình âm thanh phát</span></h2>
+                    
+                    <form id="soundForm" class="config-form">
+                        <!-- Chime Type -->
+                        <div class="form-group">
+                            <label for="selectChime"><i class="fa-solid fa-bell"></i> <span data-i18n="label_chime">Âm hiệu thông báo (Chime)</span></label>
+                            <select id="selectChime">
+                                <option value="dingdong" data-i18n="opt_chime_dingdong">Song âm Ding-Dong cổ điển</option>
+                                <option value="beep" data-i18n="opt_chime_beep">Tiếng Bíp kỹ thuật số dồn dập</option>
+                                <option value="bell" data-i18n="opt_chime_bell">Chuông gió ngân vang (Soft Bell)</option>
+                                <option value="double_beep" data-i18n="opt_chime_double_beep">Bíp kép hiện đại (Double Beep)</option>
+                                <option value="success_chime" data-i18n="opt_chime_success">Âm hiệu khởi hành (Ascending Chord)</option>
+                                <option value="elevator_ding" data-i18n="opt_chime_elevator">Chuông thang máy ngân (Elevator Ding)</option>
+                                <option value="subtle_wobble" data-i18n="opt_chime_wobble">Âm lướt nhẹ nhàng (Subtle Wobble)</option>
+                                <option value="vn_airline" data-i18n="opt_chime_vn_airline">Nhạc hiệu Vietnam Airlines (Đặc trưng)</option>
+                                <option value="none" data-i18n="opt_chime_none">Không phát âm hiệu (Chỉ giọng đọc)</option>
+                            </select>
+                        </div>
+
+                        <!-- TTS voice rate and volume -->
+                        <div class="form-row">
+                            <div class="form-group col-6">
+                                <label for="rangeVolume"><i class="fa-solid fa-volume-low"></i> <span data-i18n="label_volume">Âm lượng</span></label>
+                                <div class="slider-wrapper">
+                                    <input type="range" id="rangeVolume" min="0" max="1" step="0.1" value="1">
+                                    <span class="slider-val" id="valVolume">100%</span>
+                                </div>
+                            </div>
+                            <div class="form-group col-6">
+                                <label for="rangeSpeed"><i class="fa-solid fa-gauge"></i> <span data-i18n="label_speed">Tốc độ đọc</span></label>
+                                <div class="slider-wrapper">
+                                    <input type="range" id="rangeSpeed" min="0.5" max="1.5" step="0.1" value="1">
+                                    <span class="slider-val" id="valSpeed">1.0x</span>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+                        <!-- Voice quality control & Test button -->
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-microphone-lines"></i> <span data-i18n="label_voice_quality">Chất lượng & Kiểm tra giọng đọc</span></label>
+                            <div class="file-uploader-row">
+                                <button type="button" class="upload-action-btn btn-primary" id="btnTestVoice">
+                                    <i class="fa-solid fa-play"></i> <span data-i18n="btn_test_voice">Nghe thử giọng mẫu</span>
+                                </button>
+                            </div>
+                            <span class="help-text text-green" id="voiceSelectedName"></span>
+                        </div>
+
+                        <!-- Dynamic Placeholders Explanation Card -->
+                        <div class="alert-info-card">
+                            <strong><i class="fa-solid fa-circle-info"></i> <span data-i18n="label_tags_title">Nhãn điền động khả dụng:</span></strong>
+                            <ul>
+                                <li><code>{name}</code> : <span data-i18n="tag_name">Tên tài xế</span></li>
+                                <li><code>{model}</code> : <span data-i18n="tag_model">Loại xe</span></li>
+                                <li><code>{plate}</code> : <span data-i18n="tag_plate">Biển số xe</span></li>
+                            </ul>
+                        </div>
+
+                        <!-- Welcome Script -->
+                        <div class="form-group">
+                            <label for="textWelcome"><i class="fa-solid fa-door-open text-red"></i> <span data-i18n="label_script_welcome">Kịch bản Chào mừng khách</span></label>
+                            <textarea id="textWelcome" rows="3" required></textarea>
+                        </div>
+
+                        <!-- Intro Script -->
+                        <div class="form-group">
+                            <label for="textIntro"><i class="fa-solid fa-id-badge text-yellow"></i> <span data-i18n="label_script_intro">Kịch bản Giới thiệu tài xế & xe</span></label>
+                            <textarea id="textIntro" rows="3" required></textarea>
+                        </div>
+
+                        <!-- Farewell Script -->
+                        <div class="form-group">
+                            <label for="textFarewell"><i class="fa-solid fa-hand-holding-hand text-blue"></i> <span data-i18n="label_script_farewell">Kịch bản Tạm biệt & nhắc nhở</span></label>
+                            <textarea id="textFarewell" rows="3" required></textarea>
+                        </div>
+
+                        <button type="submit" class="save-btn"><i class="fa-solid fa-floppy-disk"></i> <span data-i18n="btn_save_sound">Lưu cấu hình âm thanh</span></button>
+                    </form>
+                </section>
+
+                <!-- SECTION 6: APP CONFIG / SETTINGS VIEW -->
+                <section class="content-section" id="settings-view">
+                    <h2 class="section-title"><i class="fa-solid fa-gear"></i> <span data-i18n="menu_settings">Cài đặt</span></h2>
+                    
+                    <div class="config-form">
+                        
+                        <!-- 1. THEME SETTING -->
+                        <div class="form-group">
+                            <label for="selectTheme"><i class="fa-solid fa-circle-half-stroke"></i> <span data-i18n="label_theme_setting">Giao diện</span></label>
+                            <select id="selectTheme">
+                                <option value="dark" data-i18n="opt_theme_dark">Tối (Dark Mode)</option>
+                                <option value="light" data-i18n="opt_theme_light">Sáng (Light Mode)</option>
+                            </select>
+                        </div>
+
+                        <!-- 2. APPEARANCE SETTINGS -->
+                        <div class="form-group border-top pt-15">
+                            <label class="section-sub-title" data-i18n="title_app_appearance"><i class="fa-solid fa-palette"></i> Tùy biến giao diện</label>
+                        </div>
+
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-image"></i> <span data-i18n="label_bg_app">Hình nền ứng dụng</span></label>
+                            <div class="file-uploader-row">
+                                <button type="button" class="upload-action-btn btn-primary" onclick="document.getElementById('inputBgImage').click()">
+                                    <i class="fa-solid fa-upload"></i> <span data-i18n="btn_choose_bg">Chọn ảnh nền</span>
+                                </button>
+                                <button type="button" class="upload-action-btn btn-secondary" id="btnResetBg">
+                                    <i class="fa-solid fa-rotate-left"></i> <span data-i18n="btn_reset">Đặt lại</span>
+                                </button>
+                            </div>
+                            <input type="file" id="inputBgImage" accept="image/*" class="hidden-input">
+                        </div>
+
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-star"></i> <span data-i18n="label_logo_app">Logo ứng dụng (Góc trên phải)</span></label>
+                            <div class="file-uploader-row">
+                                <button type="button" class="upload-action-btn btn-primary" onclick="document.getElementById('inputLogo').click()">
+                                    <i class="fa-solid fa-upload"></i> <span data-i18n="btn_choose_logo">Chọn logo</span>
+                                </button>
+                                <button type="button" class="upload-action-btn btn-secondary" id="btnResetLogo">
+                                    <i class="fa-solid fa-rotate-left"></i> <span data-i18n="btn_reset">Đặt lại</span>
+                                </button>
+                            </div>
+                            <input type="file" id="inputLogo" accept="image/*" class="hidden-input">
+                        </div>
+
+                        <!-- 3. PAYMENT SETTINGS -->
+                        <div class="form-group border-top pt-15">
+                            <label class="section-sub-title" data-i18n="title_bank_config"><i class="fa-solid fa-building-columns"></i> Cấu hình tài khoản thanh toán</label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="selectBank" data-i18n="label_bank_name">Ngân hàng nhận</label>
+                            <select id="selectBank">
+                                <option value="VIETCOMBANK">VIETCOMBANK</option>
+                                <option value="TECHCOMBANK">TECHCOMBANK</option>
+                                <option value="MBBANK">MBBANK</option>
+                                <option value="BIDV">BIDV</option>
+                                <option value="VIETINBANK">VIETINBANK</option>
+                                <option value="ACB">ACB</option>
+                                <option value="VPBANK">VPBANK</option>
+                                <option value="TPBANK">TPBANK</option>
+                                <option value="SACOMBANK">SACOMBANK</option>
+                                <option value="AGRIBANK">AGRIBANK</option>
+                                <option value="other" data-i18n="opt_bank_other">Khác (Tự nhập)</option>
+                            </select>
+                        </div>
+
+                        <!-- Manual bank entry group (Hidden by default) -->
+                        <div class="form-group hidden" id="customBankGroup">
+                            <label for="inputCustomBank" data-i18n="label_custom_bank">Tên ngân hàng khác</label>
+                            <input type="text" id="inputCustomBank" placeholder="Nhập tên ngân hàng của bạn">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="inputAccountNo" data-i18n="label_bank_account">Số tài khoản nhận cước</label>
+                            <input type="text" id="inputAccountNo" placeholder="Ví dụ: 123456789">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="inputAccountName" data-i18n="label_bank_holder">Chủ tài khoản (viết hoa không dấu)</label>
+                            <input type="text" id="inputAccountName" placeholder="Ví dụ: NGUYEN VAN TAI">
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group col-6">
+                                <label for="inputDefaultAmount" data-i18n="label_default_amount">Số tiền cước mặc định</label>
+                                <input type="number" id="inputDefaultAmount" placeholder="50000">
+                            </div>
+                            <div class="form-group col-6">
+                                <label for="selectCurrency"><i class="fa-solid fa-money-bill-1-wave"></i> <span data-i18n="label_currency_setting">Đơn vị tiền tệ</span></label>
+                                <select id="selectCurrency">
+                                    <option value="VND">VNĐ (đ)</option>
+                                    <option value="USD">USD ($)</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="image-uploader-label" data-i18n="label_qr_upload">Hình ảnh mã QR nhận tiền (VietQR/Momo...)</label>
+                            <div class="qr-preview-wrapper" onclick="document.getElementById('inputQrCode').click()">
+                                <img id="previewQr" src="" alt="QR Code xem trước" class="preview-qr hidden">
+                                <div id="previewQrFallback" class="preview-qr-fallback">
+                                    <i class="fa-solid fa-camera"></i>
+                                    <span data-i18n="upload_qr_photo">Chọn ảnh QR Code</span>
+                                </div>
+                            </div>
+                            <input type="file" id="inputQrCode" accept="image/*" class="hidden-input">
+                            <span class="help-text" id="qrVerifyStatus"></span>
+                        </div>
+
+                        <!-- 4. GEMINI API CONFIG -->
+                        <div class="form-group border-top pt-15">
+                            <label class="section-sub-title" data-i18n="title_ai_config"><i class="fa-solid fa-key"></i> Cấu hình Tác nhân AI Cloud</label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="inputGeminiKey" data-i18n="label_gemini_key">Gemini API Key (Tùy chọn)</label>
+                            <input type="password" id="inputGeminiKey" placeholder="Nhập API Key của bạn để sử dụng AI tạo kịch bản">
+                            <span class="help-text" data-i18n="gemini_key_help">Nhận API Key miễn phí tại Google AI Studio. Nếu để trống, hệ thống sẽ sử dụng mẫu câu dựng sẵn.</span>
+                        </div>
+
+                        <button type="button" class="save-btn" id="btnSavePaymentConfig"><i class="fa-solid fa-floppy-disk"></i> <span data-i18n="btn_save_payment">Lưu cài đặt</span></button>
+                    </div>
+                </section>
+
+                <!-- SECTION 7: AI AGENT VIEW -->
+                <section class="content-section" id="ai-agent-view">
+                    <h2 class="section-title"><i class="fa-solid fa-robot text-purple"></i> <span data-i18n="title_ai_agent">Tác nhân AI (taxi_sound)</span></h2>
+                    
+                    <!-- ANNOUNCEMENTS CONTAINER -->
+                    <div id="aiAnnounceTabContent">
+                        <div class="payment-card glass-card">
+                            <div class="form-group">
+                                <label for="inputAiPrompt"><i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="label_ai_prompt">Yêu cầu của bạn đối với Tác nhân AI</span></label>
+                                <textarea id="inputAiPrompt" rows="3" placeholder="Ví dụ: Chào gia đình đi du lịch, chúc họ chuyến đi vui vẻ và thời tiết Hà Nội hôm nay mát mẻ..." required></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="selectAiLang"><i class="fa-solid fa-globe"></i> <span data-i18n="label_ai_lang">Ngôn ngữ đọc</span></label>
+                                <select id="selectAiLang">
+                                    <option value="vi">Tiếng Việt</option>
+                                    <option value="en">English</option>
+                                </select>
+                            </div>
+                            
+                            <button type="button" class="save-btn btn-purple" id="btnGenerateAiSpeech">
+                                <i class="fa-solid fa-paper-plane"></i> <span data-i18n="btn_generate_ai">Tạo & Phát âm thanh AI</span>
+                            </button>
+                        </div>
+                        
+                        <!-- Result Display card -->
+                        <div class="payment-card glass-card hidden mt-20" id="aiResultCard">
+                            <div class="detail-row border-bottom pb-10 mb-10">
+                                <strong class="text-purple"><i class="fa-solid fa-quote-left"></i> <span data-i18n="label_ai_result">Nội dung do Tác nhân AI tạo ra:</span></strong>
+                            </div>
+                            <p class="ai-generated-text" id="aiGeneratedText">-</p>
+                            <div class="wave-bar-container mt-15 hidden" id="aiVisualizer">
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </section>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Script imports (Force refresh cache with query parameter) -->
+    <script src="app.js?v=5.0"></script>
+</body>
+</html>

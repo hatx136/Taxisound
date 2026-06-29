@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Taxi Sounds</string>
+    <string name="title_activity_main">Taxi Sounds</string>
+    <string name="package_name">com.taxisound.app</string>
+    <string name="custom_url_scheme">com.taxisound.app</string>
+</resources>

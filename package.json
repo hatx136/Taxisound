@@ -1,0 +1,24 @@
+{
+  "name": "taxi-sounds",
+  "version": "1.0.0",
+  "description": "Ứng dụng âm thanh thông báo cho xe taxi dịch vụ",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx http-server www -p 3000"
+  },
+  "keywords": [
+    "taxi",
+    "sounds",
+    "tts"
+  ],
+  "author": "Antigravity",
+  "license": "ISC",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.4.1",
+    "@capacitor/cli": "^8.4.1",
+    "@capacitor/core": "^8.4.1"
+  }
+}
